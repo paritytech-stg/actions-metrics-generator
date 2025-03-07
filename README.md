@@ -1,1 +1,3 @@
 # actions-metrics-generator
+
+trigger
