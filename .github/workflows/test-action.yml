@@ -10,9 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo job1
+      - name: Set changes
+        id: set_changes
+        uses: tj-actions/changed-files@v45
+        with:
+          files_yaml: |
+            rust:
+              - '**/*'
+              - '!.github/**/*'
+              - '!prdoc/**/*'
+              - '!docs/**/*'
+            currentWorkflow:
+              - '${{ steps.current_file.outputs.currentWorkflowFile }}'
+              - '.github/workflows/reusable-preflight.yml'
 
   job2:
     runs-on: ubuntu-latest
     steps:
       - run: sleep 20s
       - run: echo job2
+      
