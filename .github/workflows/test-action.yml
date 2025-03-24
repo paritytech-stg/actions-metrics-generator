@@ -29,4 +29,10 @@ jobs:
     steps:
       - run: sleep 20s
       - run: echo job2
+
+  job3:
+    runs-on: cattery-tiny
+    steps:
+      - run: sleep 20s
+      - run: echo job3      
       
