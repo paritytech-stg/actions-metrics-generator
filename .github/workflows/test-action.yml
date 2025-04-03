@@ -34,5 +34,15 @@ jobs:
     runs-on: cattery-gce
     steps:
       - run: sleep 20s
-      - run: echo job3      
-      
+      - run: echo job3
+
+  job4:
+    runs-on: cattery-gce
+    steps:
+      - name: Setup Go 1.24
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24
+      - name: Display Go version
+        run: go version
+
