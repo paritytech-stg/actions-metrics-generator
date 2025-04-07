@@ -22,3 +22,9 @@ jobs:
       - name: Display Go version
         run: go version
 
+      - uses: actions/checkout
+        with:
+          repository: paritytech/cattery
+
+      - run: ls -la
+
