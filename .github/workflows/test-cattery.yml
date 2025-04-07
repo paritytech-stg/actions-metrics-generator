@@ -7,7 +7,7 @@ on:
 jobs:
 
   job3:
-    runs-on: cattery-gce
+    runs-on: cattery-gce-local
     steps:
       - run: sleep 20s
       - run: echo job3
