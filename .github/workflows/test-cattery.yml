@@ -22,7 +22,7 @@ jobs:
       - name: Display Go version
         run: go version
 
-      - uses: actions/checkout
+      - uses: actions/checkout@v4
         with:
           repository: paritytech/cattery
 
