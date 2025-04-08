@@ -1,4 +1,4 @@
-name: cattery test
+name: cattery test local
 
 on:
   workflow_dispatch:
