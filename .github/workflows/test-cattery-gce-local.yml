@@ -1,4 +1,4 @@
-name: cattery test local
+name: cattery test gce local
 
 on:
   workflow_dispatch:
