@@ -1,8 +1,12 @@
-name: cattery test stg
+name: cattery test cattery-gce-stg
 
 on:
   workflow_dispatch:
-
+    inputs:
+      long_job:
+        description: 'Run long job'
+        required: false
+        default: 'false'
 
 jobs:
 
@@ -29,4 +33,11 @@ jobs:
       - run: go build -C src -o ../cattery
 
       - run: ./cattery --help
+
+  long_job:
+    if: ${{ github.event.inputs.long_job == 'true' }}
+    runs-on: cattery-gce-stg
+    steps:
+      - run: sleep 600s
+      - run: echo long job
 
