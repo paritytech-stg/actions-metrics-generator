@@ -5,9 +5,16 @@ on:
 
 
 jobs:
-  job1:
+  prom-internal-service:
     runs-on: parity-default
     steps:
       - run: echo job1
       - name: Set changes
         run: curl http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+
+  prom-internal-ingress:
+    runs-on: parity-default
+    steps:
+      - run: echo job1
+      - name: Set changes
+        run: curl http://prometheus-stg.parity-ci.parity.io/api/v1/write
