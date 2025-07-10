@@ -1,0 +1,13 @@
+name: gha runners test
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo job1
+      - name: Set changes
+        run: curl http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
