@@ -9,7 +9,7 @@ jobs:
     name: Build cargo
     runs-on: parity-default
     container:
-      image: docker.io/paritypr/ci-unified:staging-bullseye-1.88.0-v202507111614
+      image: docker.io/paritytech/ci-unified:bullseye-1.88.0-2025-06-27-v202507112050
     services:
       minio:
         image: bitnami/minio:2024.5.7
