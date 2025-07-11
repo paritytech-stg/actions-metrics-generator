@@ -23,7 +23,7 @@ jobs:
     steps:
       - run: |
           mkdir .forklift
-          tee .forklift/config.toml <<< '
+          cat >.forklift/config.toml <<EOL
           [general]
             logLevel = "debug"
             threadsCount = 3
@@ -40,14 +40,14 @@ jobs:
             github_job="$GITHUB_JOB"
 
           [metrics]
-          enabled = true
-          pushEndpoint = "http://alloy-forwarder-stg.alloy:8080/api/v1/metrics/write"
+            enabled = true
+            pushEndpoint = "http://alloy-forwarder-stg.alloy:8080/api/v1/metrics/write"
 
           [metrics.extraLabels]
-          environment = "production"
-          job_name = "$GITHUB_JOB"
-          project_name = "$GITHUB_REPOSITORY"
-          '
+            environment = "production"
+            job_name = "$GITHUB_JOB"
+            project_name = "$GITHUB_REPOSITORY"
+          EOL
 
       - name: Checkout cargo 1
         uses: actions/checkout@v4
