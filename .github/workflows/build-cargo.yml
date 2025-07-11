@@ -1,0 +1,58 @@
+name: Build cargo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  #
+  Build-cargo:
+    name: Build cargo
+    runs-on: parity-default
+    services:
+      minio:
+        image: bitnami/minio:2024.5.7
+        env:
+          MINIO_ROOT_USER: root
+          MINIO_ROOT_PASSWORD: rootroot
+          MINIO_DEFAULT_BUCKETS: forklift:public
+        ports:
+          - 9000:9000
+
+    steps:
+
+      - run: |
+          mkdir .forklift
+          tee .forklift/config.toml <<< '
+          [general]
+            logLevel = "debug"
+            threadsCount = 3
+          [compression]
+            type = "none"
+          [storage]
+            type = "s3"
+          [storage.s3]
+            endpointUrl = "http://localhost:9000"
+            bucketName = "forklift"
+            useSSL = false
+          [cache.extraMetadata]
+            github_run_id="$GITHUB_RUN_ID"
+            github_job="$GITHUB_JOB"
+
+          [metrics]
+          enabled = true
+          pushEndpoint = "http://alloy-forwarder-stg.alloy:8080/api/v1/metrics/write"
+
+          [metrics.extraLabels]
+          environment = "production"
+          job_name = "$GITHUB_JOB"
+          project_name = "$GITHUB_REPOSITORY"
+          '
+
+      - name: Checkout cargo 1
+        uses: actions/checkout@v4
+        with:
+          repository: rust-lang/cargo
+          ref: rust-1.88.0
+
+      - name: build cargo
+        run: forklift cargo build --release
