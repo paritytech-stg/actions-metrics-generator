@@ -8,6 +8,8 @@ jobs:
   Build-cargo:
     name: Build cargo
     runs-on: parity-default
+    container:
+      image: docker.io/paritytech/ci-unified:bullseye-1.88.0-2025-06-27-v202507101316
     services:
       minio:
         image: bitnami/minio:2024.5.7
@@ -19,7 +21,6 @@ jobs:
           - 9000:9000
 
     steps:
-
       - run: |
           mkdir .forklift
           tee .forklift/config.toml <<< '
