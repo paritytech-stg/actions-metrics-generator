@@ -21,6 +21,12 @@ jobs:
           - 9000:9000
 
     steps:
+      - name: Checkout cargo 1
+        uses: actions/checkout@v4
+        with:
+          repository: rust-lang/cargo
+          ref: rust-1.88.0
+
       - run: |
           mkdir .forklift
           cat >.forklift/config.toml <<EOL
@@ -48,12 +54,6 @@ jobs:
             job_name = "$GITHUB_JOB"
             project_name = "$GITHUB_REPOSITORY"
           EOL
-
-      - name: Checkout cargo 1
-        uses: actions/checkout@v4
-        with:
-          repository: rust-lang/cargo
-          ref: rust-1.88.0
 
       - name: build cargo
         run: forklift cargo build --release
