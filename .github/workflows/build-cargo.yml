@@ -38,7 +38,7 @@ jobs:
           [storage]
             type = "s3"
           [storage.s3]
-            endpointUrl = "http://localhost:9000"
+            endpointUrl = "http://minio:9000"
             bucketName = "forklift"
             useSSL = false
           [cache.extraMetadata]
