@@ -17,7 +17,7 @@ jobs:
   job3:
     runs-on: cattery-gce-stg
     steps:
-      - run: sleep 20s
+      - run: sleep 60s
       - run: echo job3
 
   long_job:
