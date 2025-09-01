@@ -3,6 +3,10 @@ name: cattery test cattery-gce-stg
 on:
   workflow_dispatch:
     inputs:
+      build_job:
+        description: 'Run cattery build job'
+        required: false
+        default: 'false'
       long_job:
         description: 'Run long job'
         required: false
@@ -14,11 +18,30 @@ on:
 
 jobs:
 
-  job3:
+  simple_job:
     runs-on: cattery-gce-stg
     steps:
       - run: sleep 60s
       - run: echo job3
+
+  build_job:
+    if: ${{ github.event.inputs.build_job == 'true' }}
+    runs-on: cattery-gce-local
+    steps:
+      - name: Setup Go 1.24
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24
+      - name: Display Go version
+        run: go version
+
+      - uses: actions/checkout@v4
+        with:
+          repository: paritytech/cattery
+
+      - run: go build -C src -o ../cattery
+
+      - run: ./cattery --help      
 
   long_job:
     if: ${{ github.event.inputs.long_job == 'true' }}
