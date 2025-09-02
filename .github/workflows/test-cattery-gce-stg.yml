@@ -61,7 +61,7 @@ jobs:
       image: docker.io/paritytech/ci-unified:bullseye-1.88.0-2025-06-27-v202507221446
       options: --privileged
     steps:
-      - run: ping 8.8.8.8
+      - run: curl http://google.com
       - run: sleep 600s
       - run: echo container_job
 
