@@ -19,6 +19,10 @@ on:
         description: 'Run 10 jobs in matrix'
         required: false
         default: 'false'
+      oldlinux_job:
+        description: 'Run 600s job on parity-oldlinux-test'
+        required: false
+        default: 'false'
 
 jobs:
 
@@ -26,6 +30,13 @@ jobs:
     runs-on: cattery-gce-stg
     steps:
       - run: sleep 60s
+      - run: echo job3
+
+  oldlinux_job:
+    if: ${{ github.event.inputs.oldlinux_job == 'true' }}
+    runs-on: parity-oldlinux-test
+    steps:
+      - run: sleep 600s
       - run: echo job3
 
   build_job:
