@@ -1,0 +1,15 @@
+name: test
+
+on:
+  push:
+    # Pattern matched against refs/tags
+    tags:
+      - '*'
+
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo job1
+      - run: echo {{ github.sha }}
