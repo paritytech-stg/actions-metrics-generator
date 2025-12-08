@@ -1,0 +1,8 @@
+on: push
+
+jobs:
+  env1:
+    environment: "staging"
+    runs-on: unbuntu-latest
+    steps:
+      - run: sleep 10s
