@@ -5,7 +5,7 @@ env:
 
 jobs:
   env1:
-    environment: ${{ github.smth == '' && 'staging' || null }}
+    environment: ${{ github.smth != '' && 'staging' || null }}
     runs-on: ubuntu-latest
     steps:
       - run: sleep 3s
