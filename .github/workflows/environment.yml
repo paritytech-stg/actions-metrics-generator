@@ -2,7 +2,7 @@ on: push
 
 jobs:
   env1:
-    environment: "staging"
+    environment: ${{ 1==1 && 'staging' || null }}
     runs-on: ubuntu-latest
     steps:
       - run: sleep 10s
