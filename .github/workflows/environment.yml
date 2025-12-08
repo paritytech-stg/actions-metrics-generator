@@ -1,8 +1,11 @@
 on: push
 
+env:
+  VAR2: abc
+
 jobs:
   env1:
-    environment: ${{ 1==2 && 'staging' || null }}
+    environment: ${{ env.VAR1 && 'staging' || null }}
     runs-on: ubuntu-latest
     steps:
       - run: sleep 3s
