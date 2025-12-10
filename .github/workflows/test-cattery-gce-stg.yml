@@ -27,7 +27,7 @@ on:
 jobs:
 
   simple_job:
-    runs-on: cattery-gce-stg
+    runs-on: parity-large
     steps:
       - run: sleep 60s
       - run: echo job3
@@ -41,7 +41,7 @@ jobs:
 
   build_job:
     if: ${{ github.event.inputs.build_job == 'true' }}
-    runs-on: cattery-gce-stg
+    runs-on: parity-large
     steps:
       - name: Setup Go 1.24
         uses: actions/setup-go@v5
@@ -60,14 +60,14 @@ jobs:
 
   long_job:
     if: ${{ github.event.inputs.long_job == 'true' }}
-    runs-on: cattery-gce-stg
+    runs-on: parity-large
     steps:
       - run: sleep 600s
       - run: echo long job
 
   container_job:
     if: ${{ github.event.inputs.container_job == 'true' }}
-    runs-on: cattery-gce-stg
+    runs-on: parity-large
     container:
       image: docker.io/paritytech/ci-unified:bullseye-1.88.0-2025-06-27-v202507221446
       options: --privileged
@@ -78,7 +78,7 @@ jobs:
 
   matrix_job:
     if: ${{ github.event.inputs.matrix_job == 'true' }}
-    runs-on: cattery-gce-stg
+    runs-on: parity-large
     strategy:
       fail-fast: false
       matrix:
