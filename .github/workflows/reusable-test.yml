@@ -1,0 +1,13 @@
+name: Call reusable workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  call-reusable:
+    uses: ./.github/workflows/reusable.yml
+    with:
+      some-input: 'example value'
