@@ -1,0 +1,11 @@
+name: test macos
+
+on:
+  workflow_dispatch:
+
+jobs:
+  job1:
+    runs-on: macos-15
+    steps:
+      - run: echo job1
+      - run: echo {{ github.sha }}
