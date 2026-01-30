@@ -5,7 +5,7 @@ on:
 
 jobs:
   job1:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     steps:
       - run: echo job1
       - run: echo {{ github.sha }}
