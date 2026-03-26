@@ -2,6 +2,11 @@ name: cattery test docker local
 
 on:
   workflow_dispatch:
+    inputs:
+      extra_jobs:
+        description: 'Run cattery build job'
+        required: false
+        default: 'false'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -9,14 +14,15 @@ concurrency:
 
 jobs:
 
-  job3:
+  job1:
     runs-on: cattery-docker-local
     steps:
       - run: sleep 20s
-      - run: echo job3
+      - run: echo job1
 
   job4:
     runs-on: cattery-docker-local
+    if: ${{ github.event.inputs.extra_jobs == 'true' }}
     steps:
       - name: Setup Go 1.24
         uses: actions/setup-go@v5
@@ -35,6 +41,7 @@ jobs:
 
   matrix-job:
     runs-on: cattery-docker-local
+    if: ${{ github.event.inputs.extra_jobs == 'true' }}
     strategy:
       fail-fast: false
       matrix:
