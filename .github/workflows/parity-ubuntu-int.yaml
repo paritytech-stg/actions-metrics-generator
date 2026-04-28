@@ -1,0 +1,342 @@
+name: Test cattery image software
+
+# Drop this in `.github/workflows/test-cattery-image.yml` of any repo whose CI
+# runs on parity cattery runners. Trigger via "Run workflow" in the Actions tab.
+#
+# What it does: exercises every tool documented in
+# packer/gcp/github_runner_cattery/INSTALLED_SOFTWARE.md so a bad image build
+# fails this workflow rather than silently breaking downstream jobs.
+#
+# Adjust:
+#   1. `runs-on:` to whatever label targets the cattery image you want to test.
+#      Typical: a self-hosted label such as `[self-hosted, parity-default]`
+#      for cattery-ubuntu, or `[self-hosted, parity-default-oldkernel]` for
+#      cattery-debian. Or use matrix below to test both.
+#   2. The matrix `runner` values to your two label sets.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-image:
+    name: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Replace with the actual labels exposed by your cattery trays.
+        runner:
+          - parity-default          # cattery-ubuntu
+          - parity-default-oldkernel  # cattery-debian
+    runs-on: [self-hosted, "${{ matrix.runner }}"]
+    timeout-minutes: 20
+
+    steps:
+      - name: Image identity
+        if: always()
+        run: |
+          set -e
+          echo "::group::os-release"
+          cat /etc/os-release
+          echo "::endgroup::"
+          echo "::group::kernel + uptime"
+          uname -a
+          uptime
+          echo "::endgroup::"
+          echo "::group::disk + memory"
+          df -h /
+          free -h
+          echo "::endgroup::"
+
+      - name: Helper — define check function
+        if: always()
+        run: |
+          # Reusable helper written to a file so subsequent steps can `source` it.
+          cat > /tmp/check.sh <<'BASH'
+          # check <binary> [version-cmd...]
+          # Marks pass if binary resolves; runs version-cmd best-effort and prints
+          # first line of output. Increments $fail on missing binary.
+          fail=${fail:-0}
+          check() {
+              local name="$1"; shift
+              if command -v "$name" >/dev/null 2>&1; then
+                  if [ $# -gt 0 ]; then
+                      local out
+                      out=$("$@" 2>&1 | head -n 1 || true)
+                      printf "  ✓ %-25s %s\n" "$name" "$out"
+                  else
+                      printf "  ✓ %-25s\n" "$name"
+                  fi
+              else
+                  printf "  ✗ %-25s MISSING\n" "$name"
+                  fail=$((fail + 1))
+              fi
+          }
+          # check_path <label> <path>
+          check_path() {
+              local label="$1" p="$2"
+              if [ -e "$p" ]; then
+                  printf "  ✓ %-25s (%s)\n" "$label" "$p"
+              else
+                  printf "  ✗ %-25s MISSING (%s)\n" "$label" "$p"
+                  fail=$((fail + 1))
+              fi
+          }
+          # finish — exits non-zero if anything missing
+          finish() {
+              if [ "$fail" -gt 0 ]; then
+                  echo
+                  echo "FAILED: $fail missing item(s)"
+                  exit 1
+              fi
+              echo
+              echo "OK"
+          }
+          BASH
+
+      - name: apt — core utilities
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check acl getfacl --version
+          check aria2c aria2c --version
+          check autoconf autoconf --version
+          check automake automake --version
+          check ld ld --version
+          check bison bison --version
+          check brotli brotli --version
+          check bzip2 bzip2 --help
+          check curl curl --version
+          check dbus-send dbus-send --version
+          check dig dig -v
+          check dpkg-buildpackage dpkg-buildpackage --version
+          check fakeroot fakeroot --version
+          check file file --version
+          check flex flex --version
+          check gcc gcc --version
+          check g++ g++ --version
+          check gpg gpg --version
+          check ip ip -V
+          check ping ping -V
+          check jq jq --version
+          check lz4 lz4 --version
+          check m4 m4 --version
+          check make make --version
+          check mediainfo mediainfo --version
+          check hg hg --version
+          check netstat netstat --version
+          check nc
+          check ssh
+          check 7z
+          check parallel parallel --version
+          check patchelf patchelf --version
+          check pigz
+          check pkg-config pkg-config --version
+          check rpm rpm --version
+          check rsync rsync --version
+          check shellcheck shellcheck --version
+          check sqlite3 sqlite3 --version
+          check sshpass sshpass -V
+          check swig
+          check tar tar --version
+          check telnet
+          check makeinfo makeinfo --version
+          check tree tree --version
+          check unzip
+          check wget wget --version
+          check yamllint yamllint --version
+          check zip
+          check zsync zsync --version
+          check zstd zstd --version
+          check Xvfb
+          check xz xz --version
+          finish
+
+      - name: apt — build tools (cmake / ninja / ant / maven / gradle)
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check cmake cmake --version
+          check ninja ninja --version
+          check ant ant -version
+          check mvn mvn --version
+          check gradle gradle --version
+          finish
+
+      - name: apt — container tooling (buildah / podman / skopeo)
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check buildah buildah --version
+          check podman podman --version
+          check skopeo skopeo --version
+          finish
+
+      - name: Languages — Go / Java / PHP / Ruby / Rust / Node / .NET
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check go go version
+          check java
+          check javac
+          # JAVA_HOME exported in /etc/environment; login shells pick it up.
+          if [ -n "${JAVA_HOME:-}" ]; then
+              check_path "JAVA_HOME"          "$JAVA_HOME"
+          else
+              # /etc/environment isn't sourced in non-login shells — read directly.
+              jh=$(grep '^JAVA_HOME=' /etc/environment | cut -d= -f2)
+              check_path "JAVA_HOME (env file)" "$jh"
+          fi
+          check php php --version
+          check composer composer --version
+          check ruby ruby --version
+          check gem gem --version
+          check rustup rustup --version
+          check cargo cargo --version
+          check node node --version
+          check npm npm --version
+          check dotnet dotnet --info
+          finish
+
+      - name: Vendor CLIs — Packer / Azure / PowerShell / gcloud / kubectl / gh
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check packer packer --version
+          check az
+          check pwsh pwsh --version
+          check gcloud gcloud --version
+          check kubectl kubectl version --client
+          check gh gh --version
+          # Alloy installed by install.sh — service binary, may not be on PATH
+          check_path "alloy binary" "/usr/bin/alloy"
+          finish
+
+      - name: Single-binary downloads — AWS / Helm / yq / kustomize / kind / minikube / Bazelisk / Pulumi
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check aws aws --version
+          check helm helm version --short
+          check yq yq --version
+          check kustomize kustomize version
+          check kind kind version
+          check minikube minikube version
+          check_path "bazelisk"  "/usr/local/bin/bazelisk"
+          check_path "bazel symlink" "/usr/local/bin/bazel"
+          check pulumi pulumi version
+          finish
+
+      - name: Web servers — installed but disabled
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check_path "apache2" "/usr/sbin/apache2"
+          check_path "nginx"   "/usr/sbin/nginx"
+          for svc in apache2 nginx; do
+              state=$(systemctl is-enabled "$svc" 2>/dev/null || echo unknown)
+              if [ "$state" = "disabled" ] || [ "$state" = "masked" ]; then
+                  printf "  ✓ %-25s disabled at boot (%s)\n" "$svc" "$state"
+              else
+                  printf "  ✗ %-25s expected disabled, got: %s\n" "$svc" "$state"
+                  fail=$((fail + 1))
+              fi
+          done
+          finish
+
+      - name: Databases — installed but disabled
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check psql psql --version
+          # mysql client (Ubuntu: from mysql-server; Debian 11: from mariadb)
+          check mysql mysql --version
+          # Service should NOT be running at boot. Name varies by distro.
+          for svc in postgresql mysql mariadb; do
+              state=$(systemctl is-enabled "$svc" 2>/dev/null || echo absent)
+              case "$state" in
+                  disabled|masked|absent)
+                      printf "  ✓ %-25s not enabled at boot (%s)\n" "$svc" "$state"
+                      ;;
+                  *)
+                      printf "  ✗ %-25s expected disabled, got: %s\n" "$svc" "$state"
+                      fail=$((fail + 1))
+                      ;;
+              esac
+          done
+          finish
+
+      - name: Cattery-specific — runner / cattery agent / forklift / falco / docker
+        if: always()
+        shell: bash
+        run: |
+          source /tmp/check.sh
+          check_path "cattery binary"     "/home/cattery/cattery"
+          check_path "actions-runner dir" "/home/cattery/actions-runner"
+          check forklift
+          check_path "falco binary"       "/usr/bin/falco"
+          check docker docker --version
+          # ci-unified docker image was pre-pulled at build time
+          if docker image inspect "$(grep -oE 'docker.io/paritytech/ci-unified:[^ ]+' /tmp/scripts/install.sh 2>/dev/null || echo '')" >/dev/null 2>&1; then
+              printf "  ✓ ci-unified image present\n"
+          elif docker images --format '{{.Repository}}:{{.Tag}}' | grep -q '^docker.io/paritytech/ci-unified:\|^paritytech/ci-unified:'; then
+              tag=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep '^docker.io/paritytech/ci-unified:\|^paritytech/ci-unified:' | head -1)
+              printf "  ✓ %-25s %s\n" "ci-unified image" "$tag"
+          else
+              printf "  ✗ ci-unified image not pre-pulled\n"
+              fail=$((fail + 1))
+          fi
+          finish
+
+      - name: Functional — actually run a docker container
+        if: always()
+        shell: bash
+        run: |
+          set -e
+          docker run --rm hello-world | tail -5
+          # If the cattery image pre-pulled ci-unified, run a one-shot in it.
+          tag=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep '^docker.io/paritytech/ci-unified:\|^paritytech/ci-unified:' | head -1 || true)
+          if [ -n "$tag" ]; then
+              docker run --rm "$tag" bash -c "echo 'ci-unified container ran OK'; uname -a"
+          fi
+
+      - name: Functional — compile a tiny C / Go / Java / Rust program
+        if: always()
+        shell: bash
+        run: |
+          set -e
+          tmp=$(mktemp -d)
+          # C
+          cat > "$tmp/hello.c" <<'C'
+          #include <stdio.h>
+          int main(void){ puts("hello-c"); return 0; }
+          C
+          gcc -O2 -o "$tmp/hello-c" "$tmp/hello.c" && "$tmp/hello-c"
+          # Go
+          cat > "$tmp/hello.go" <<'GO'
+          package main
+          import "fmt"
+          func main(){ fmt.Println("hello-go") }
+          GO
+          ( cd "$tmp" && go run hello.go )
+          # Java
+          cat > "$tmp/Hello.java" <<'JAVA'
+          public class Hello { public static void main(String[] a){ System.out.println("hello-java"); } }
+          JAVA
+          ( cd "$tmp" && javac Hello.java && java Hello )
+          # Rust (only if a toolchain is installed via rustup)
+          if rustup show active-toolchain >/dev/null 2>&1; then
+              cat > "$tmp/hello.rs" <<'RUST'
+          fn main(){ println!("hello-rust"); }
+          RUST
+              rustc -O "$tmp/hello.rs" -o "$tmp/hello-rust" && "$tmp/hello-rust"
+          else
+              echo "(rustup has no default toolchain installed — skipping Rust compile)"
+          fi
