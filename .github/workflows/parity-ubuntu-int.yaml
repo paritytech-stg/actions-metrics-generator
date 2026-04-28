@@ -25,9 +25,8 @@ jobs:
       matrix:
         # Replace with the actual labels exposed by your cattery trays.
         runner:
-          - parity-default          # cattery-ubuntu
-          - parity-default-oldkernel  # cattery-debian
-    runs-on: [self-hosted, "${{ matrix.runner }}"]
+          - parity-ubuntu-int          # cattery-ubuntu
+    runs-on: ["${{ matrix.runner }}"]
     timeout-minutes: 20
 
     steps:
