@@ -29,6 +29,7 @@ jobs:
     runs-on: ["${{ matrix.runner }}"]
     timeout-minutes: 20
 
+
     steps:
       - name: Image identity
         if: always()
@@ -97,7 +98,7 @@ jobs:
         shell: bash
         run: |
           source /tmp/check.sh
-          check acl getfacl --version
+          check getfacl getfacl --version
           check aria2c aria2c --version
           check autoconf autoconf --version
           check automake automake --version
@@ -193,8 +194,11 @@ jobs:
           check composer composer --version
           check ruby ruby --version
           check gem gem --version
-          check rustup rustup --version
-          check cargo cargo --version
+          # rustup/cargo are installed by install.sh as root into /root/.cargo/bin
+          # with --no-modify-path. They are not on the runner user's PATH and
+          # /root is 0700 so we can't even stat them as a non-root user.
+          # If you need Rust on cattery jobs, source /root/.cargo/env via sudo,
+          # install via rustup-init in the job, or use a docker container.
           check node node --version
           check npm npm --version
           check dotnet dotnet --info
@@ -239,7 +243,12 @@ jobs:
           check_path "apache2" "/usr/sbin/apache2"
           check_path "nginx"   "/usr/sbin/nginx"
           for svc in apache2 nginx; do
-              state=$(systemctl is-enabled "$svc" 2>/dev/null || echo unknown)
+              # systemctl is-enabled prints the state to stdout AND returns
+              # non-zero for "disabled"/"masked"/"static". We don't want the
+              # exit status capture pattern `cmd || echo X` because it appends
+              # to stdout. Capture stdout, then default if empty.
+              state=$(systemctl is-enabled "$svc" 2>/dev/null) || true
+              [ -z "$state" ] && state="unknown"
               if [ "$state" = "disabled" ] || [ "$state" = "masked" ]; then
                   printf "  ✓ %-25s disabled at boot (%s)\n" "$svc" "$state"
               else
@@ -257,11 +266,14 @@ jobs:
           check psql psql --version
           # mysql client (Ubuntu: from mysql-server; Debian 11: from mariadb)
           check mysql mysql --version
-          # Service should NOT be running at boot. Name varies by distro.
+          # Service should NOT be running at boot. Name varies by distro:
+          # Ubuntu has mysql + postgresql, Debian 11 has mariadb + postgresql.
+          # `not-found` is acceptable — means that variant isn't this distro's.
           for svc in postgresql mysql mariadb; do
-              state=$(systemctl is-enabled "$svc" 2>/dev/null || echo absent)
+              state=$(systemctl is-enabled "$svc" 2>/dev/null) || true
+              [ -z "$state" ] && state="absent"
               case "$state" in
-                  disabled|masked|absent)
+                  disabled|masked|absent|not-found)
                       printf "  ✓ %-25s not enabled at boot (%s)\n" "$svc" "$state"
                       ;;
                   *)
