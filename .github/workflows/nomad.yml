@@ -1,0 +1,16 @@
+name: test
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  job1:
+    runs-on: cattery-nomad-local
+    steps:
+      - run: |
+          echo 'namod runner'
+          echo 'curl -L http://example.com'
+          curl -L http://example.com
+
+
