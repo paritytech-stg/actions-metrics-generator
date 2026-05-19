@@ -6,7 +6,7 @@ on:
 
 jobs:
   job1:
-    runs-on: cattery-nomad-local
+    runs-on: cattery-nomad-toaster
     steps:
       - run: |
           echo 'nomad runner'
