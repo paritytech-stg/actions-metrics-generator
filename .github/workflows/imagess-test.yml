@@ -18,3 +18,8 @@ jobs:
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y clang libclang-dev unzip build-essential
+
+  cargo-install:
+    runs-on: parity-int-ubuntu
+    steps:
+      - run: cargo install --locked -q zepter && zepter --version
