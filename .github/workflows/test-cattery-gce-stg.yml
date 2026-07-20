@@ -37,7 +37,7 @@ jobs:
 
   oldlinux_job:
     if: ${{ github.event.inputs.oldlinux_job == 'true' }}
-    runs-on: parity-oldlinux-test
+    runs-on: parity-oldlinux-new
     steps:
       - run: sleep 600s
       - run: echo job3
