@@ -1,0 +1,23 @@
+name: Reusable workflow
+
+on:
+  workflow_call:
+    inputs:
+      some-input:
+        description: Build / test command
+        required: false
+        default: 'npm test'
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This is a reusable workflow"
+
+      - name: Write workflow summary
+        run: |
+          echo "## Workflow Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Message:** This reusable workflow ran successfully." >> "$GITHUB_STEP_SUMMARY"
+          echo "**Command:** ${{ inputs.some-input }}" >> "$GITHUB_STEP_SUMMARY"
