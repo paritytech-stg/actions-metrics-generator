@@ -23,6 +23,10 @@ on:
         description: 'Run 600s job on parity-oldlinux-test'
         required: false
         default: 'false'
+      arm_job:
+        description: 'Run job on parity-default-arm'
+        required: false
+        default: 'false'        
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -91,3 +95,9 @@ jobs:
       - run: sleep 30s
       - run: echo job#${{ matrix.job }} finished
 
+  arm_job:
+    if: ${{ github.event.inputs.arm_job == 'true' }}
+    runs-on: parity-default-arm64
+    steps:
+      - run: sleep 10s
+      - run: uname -a
